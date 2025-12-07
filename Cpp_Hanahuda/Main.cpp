@@ -1,25 +1,53 @@
 ﻿//"C:\Users\rk3b0\デスクトップ\github\Cpp_Hanahuda\Cpp_Hanahuda\App"
 # include <Siv3D.hpp> // Siv3D v0.6.16
 # include <memory>
-
-#define ATehudaBasePosition {200,500}
+# include <utility>
 
 struct HudaTextureManager
 {
 	static inline std::unique_ptr<Texture> textures[12][4];
-
 	static void Load()
 	{
 		for (int m = 0; m < 12; ++m)
+		{
 			for (int o = 0; o < 4; ++o)
-				textures[m][o] = std::make_unique<Texture>(U"Images/{}_{}.jpg"_fmt(m + 1, o + 1));
+			{
+				const String path = U"Images/{}_{}.jpg"_fmt(m + 1, o + 1);
+				// ファイル存在チェック
+				if (!FileSystem::Exists(path))
+				{
+					throw Error{ U"[Texture Load Error] File not found : " + path };
+				}
+				// 読み込み
+				auto tex = std::make_unique<Texture>(path);
+				// Textureの生成失敗チェック
+				if (!(*tex))
+				{
+					throw Error{ U"[Texture Load Error] Failed to load : " + path };
+				}
+				textures[m][o] = std::move(tex);
+			}
+		}
 	}
 
 	static const Texture& Get(int m, int o)
 	{
-		if (!textures[m][o]) {
-			// エンジン起動前やLoad未実行で呼ばれた場合は例外を投げる
-			throw std::runtime_error("HudaTextureManager::Get: textures not loaded (call Load() after engine init).");
+		// 範囲チェック
+		if (m < 0 || m >= 12 || o < 0 || o >= 4)
+		{
+			throw Error{
+				U"[Texture Get Error] index out of range: m=" + Format(m)
+				+ U", o=" + Format(o)
+			};
+		}
+		// 未ロードチェック
+		if (!textures[m][o])
+		{
+			throw Error{
+				U"[Texture Get Error] texture not loaded : m=" + Format(m)
+				+ U", o=" + Format(o)
+				+ U" (call HudaTextureManager::Load() first)"
+			};
 		}
 		return *textures[m][o];
 	}
@@ -30,11 +58,11 @@ struct Huda {
 	int height;
 	int month;
 	int order;
-	Vec2 pos;
+	Vec2 pos = { 0,0 };
 
 public: Huda() :month(0), order(0), width(40), height(60) {}
 public: Huda(int m, int o) :month(m), order(o), width(40), height(60) {}
-public:void SetBahuda(){
+public:void SetBahuda() {
 	this->width = 40;
 	this->height = 60;
 };
@@ -51,13 +79,32 @@ public:void SetPosition(Vec2 position) {
 }
 public:void Render() {
 	HudaTextureManager::Get(month, order)
-		.resized(width,height)
+		.resized(width, height)
 		.drawAt(pos);
 }
 };
-
 using BahudaLines = std::array<Array<Huda>, 12>;
 using TehudaLines = std::vector<Huda>;
+using HudaFlagTable = std::array<std::array<bool, 4>, 12>;
+
+constexpr Vec2 ATehudaBasePosition{ 200, 500 };
+constexpr Vec2  BTehudaBasePosition{ 200, 100 };
+constexpr Vec2  AMochihudaBasePosition{ 30, 400 };
+constexpr Vec2  BMochihudaBasePosition{ 30, 200 };
+constexpr std::array<std::pair<int, int>, 5> HikariPairs = {{
+	{0,0},{2,0},{7,0},{11,0},{10,0}
+}};
+constexpr std::array<std::pair<int, int>, 9> TanePairs = { {
+	{1,0},{3,0},{4,0},{5,0},{6,0},{7,1},{8,0},{9,0},{10,1}
+} };
+constexpr std::array<std::pair<int, int>, 10> TanPairs = { {
+	{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{8,1},{9,1},{10,2}
+} };
+constexpr std::array<std::pair<int, int>, 24> KasuPairs = { {
+	{0,2},{0,3},{1,2},{1,3},{2,2},{2,3},{3,2},{3,3},{4,2},{4,3},{5,2},{5,3},
+	{6,2},{6,3},{7,2},{7,3},{8,2},{8,3},{9,2},{9,3},{10,3},{11,1},{ 11,2 },{11,3}
+} };
+
 
 void DrawRadialGradientBackground(const ColorF& centerColor, const ColorF& outerColor)
 {
@@ -120,7 +167,7 @@ void DrawTable(int turn, BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines&
 
 	//Render Tehuda
 	//A
-	BasePoint = Vec2 ATehudaBasePosition;
+	BasePoint = ATehudaBasePosition;
 	gap = -20;
 	for (int i = 0; i < ATehuda.size();i++) {
 		Huda& huda = ATehuda[i];
@@ -129,7 +176,7 @@ void DrawTable(int turn, BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines&
 		huda.Render();
 	}
 	//B
-	BasePoint = Vec2{ 200,100 };
+	BasePoint = BTehudaBasePosition;
 	gap = -20;
 	for (int i = 0; i < BTehuda.size(); i++) {
 		Huda& huda = BTehuda[i];
@@ -141,7 +188,7 @@ void DrawTable(int turn, BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines&
 	return;
 }
 
-Huda GetNewHuda(bool (&BahudaAppeared)[12][4] ) {
+Huda GetNewHuda(HudaFlagTable& BahudaAppeared) {
 	int NewHudaNum = Random(0, 47);
 	int m, o;
 	do
@@ -155,7 +202,7 @@ Huda GetNewHuda(bool (&BahudaAppeared)[12][4] ) {
 	return NewHuda;
 }
 
-void InitializeTable(bool(&BahudaAppeared)[12][4],BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines& BTehuda) {
+void InitializeTable(HudaFlagTable& BahudaAppeared,BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines& BTehuda) {
 	//setting bahuda
 	int nonEmptyMonthCount = 0;
 	while (nonEmptyMonthCount < 8)
@@ -252,19 +299,95 @@ void HighlightCard(const Huda& card)
 	frame.drawFrame(5, Palette::Yellow);
 }
 
-void DrawYamahuda(BahudaLines& Bahuda, bool(&BahudaAppeared)[12][4]) {
+void DrawYamahuda(BahudaLines& Bahuda, HudaFlagTable& BahudaAppeared) {
 	Huda NewHuda = GetNewHuda(BahudaAppeared);
 	Bahuda[NewHuda.month].push_back(NewHuda);
 }
+
+class DisplayMochihuda {
+public:
+	static void Draw(const HudaFlagTable& AMochihuda, const HudaFlagTable& BMochihuda) {
+		const double GroupWidth = Scene::Width() / 4.0;
+		//Render A
+		Vec2 BasePoint = AMochihudaBasePosition;
+		Vec2 Position = BasePoint;
+		for (int i = 0; i < 4; i++) {
+			Position.x = BasePoint.x + i * GroupWidth;
+			DisplayCategory(AMochihuda, i, Position);
+		}
+		//Render B
+		BasePoint = BMochihudaBasePosition;
+		Position = BasePoint;
+		for (int i = 0; i < 4; i++) {
+			Position.x = BasePoint.x + i * GroupWidth;
+			DisplayCategory(BMochihuda, i, Position);
+		}
+	}
+private:
+	static void DisplayCategory(const HudaFlagTable& Mochihuda,int category, Vec2& BasePoint) {
+		const int gap = 20;
+		switch (category) {
+		case 0: {//光札
+			int num = 0;
+			for (auto p : HikariPairs) {
+				if (Mochihuda[p.first][p.second]) {
+					Huda huda(p.first, p.second);
+					huda.SetPosition(BasePoint + Vec2{ gap * num, 0 });
+					huda.Render();
+					num++;
+				}
+			}
+			break;
+		}
+		case 1: {//たね
+			int num = 0;
+			for (auto p : TanePairs) {
+				if (Mochihuda[p.first][p.second]) {
+					Huda huda(p.first, p.second);
+					huda.SetPosition(BasePoint + Vec2{ gap * num, 0 });
+					huda.Render();
+					num++;
+				}
+			}
+			break;
+		}
+		case 2: {//たん
+			int num = 0;
+			for (auto p : TanPairs) {
+				if (Mochihuda[p.first][p.second]) {
+					Huda huda(p.first, p.second);
+					huda.SetPosition(BasePoint + Vec2{ gap * num, 0 });
+					huda.Render();
+					num++;
+				}
+			}
+			break;
+		}
+		case 3: {//カス
+			int num = 0;
+			for (auto p : KasuPairs) {
+				if (Mochihuda[p.first][p.second]) {
+					Huda huda(p.first, p.second);
+					huda.SetPosition(BasePoint + Vec2{ gap * num, 0 });
+					huda.Render();
+					num++;
+				}
+			}
+			break;
+		}
+		default:break;
+		}
+	}
+};
 
 void Main()
 {
 	//Print << FileSystem::CurrentDirectory();
 
-	bool BahudaAppeared[12][4] = {};
+	HudaFlagTable BahudaAppeared{};
 	//A:Player B:Rival
-	bool AMochihuda[12][4] = {};
-	bool BMochihuda[12][4] = {};
+	HudaFlagTable AMochihuda{};
+	HudaFlagTable BMochihuda{};
 	// 背景の色を設定する | Set the background color
 	//Scene::SetBackground(ColorF{ 0.3, 0.9, 0.6 });
 	int turn = 0;
@@ -299,12 +422,14 @@ void Main()
 			{
 				DecidedHuda = ATehuda[DecidedIndex];
 				if (!Bahuda[DecidedHuda.month].isEmpty()) {
+					//場札から獲得
 					for (auto huda : Bahuda[DecidedHuda.month]) {
-						//獲得
 						AMochihuda[huda.month][huda.order] = true;
 					}
 					//場札から削除
 					Bahuda[DecidedHuda.month].clear();
+					//手札から獲得
+					AMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
 					//手札から削除
 					ATehuda.erase(ATehuda.begin()+ DecidedIndex);
 					SelectedIndex = -1;
@@ -314,6 +439,7 @@ void Main()
 			}
 
 		}
+		DisplayMochihuda::Draw(AMochihuda, BMochihuda);
 		IsPlayerTurn = !IsPlayerTurn;
 	}
 }
