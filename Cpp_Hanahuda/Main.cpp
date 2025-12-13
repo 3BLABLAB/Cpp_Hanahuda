@@ -1,7 +1,8 @@
 ﻿//"C:\Users\rk3b0\デスクトップ\github\Cpp_Hanahuda\Cpp_Hanahuda\App"
-# include <Siv3D.hpp> // Siv3D v0.6.16
+# include <RollChecks.h>
 # include <memory>
 # include <utility>
+
 
 struct HudaTextureManager
 {
@@ -380,6 +381,7 @@ private:
 	}
 };
 
+
 void Main()
 {
 	//Print << FileSystem::CurrentDirectory();
@@ -395,14 +397,16 @@ void Main()
 	TehudaLines ATehuda, BTehuda;
 	HudaTextureManager::Load();
 	InitializeTable(BahudaAppeared,Bahuda, ATehuda, BTehuda);
-	//for Debugging
-	PrintMonthsWithCards(Bahuda);
 
 	bool IsPlayerTurn = true;
 	int SelectedIndex = -1;   
-	int DecidedIndex = -1;  
+	int DecidedIndex = -1;
+	std::vector<String> ARolls, BRolls;
+
 	while (System::Update())
 	{
+		//for Debugging
+		Print << ARolls;
 		DrawRadialGradientBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
 		DrawTable(turn, Bahuda, ATehuda, BTehuda);
 
@@ -437,7 +441,8 @@ void Main()
 				}
 				DrawYamahuda(Bahuda, BahudaAppeared);
 			}
-
+			//Check Rolls
+			CheckRolls(AMochihuda, ARolls);
 		}
 		DisplayMochihuda::Draw(AMochihuda, BMochihuda);
 		IsPlayerTurn = !IsPlayerTurn;
