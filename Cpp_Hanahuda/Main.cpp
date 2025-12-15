@@ -405,6 +405,12 @@ void Main()
 
 	while (System::Update())
 	{
+		//for debugging
+		if (MouseR.down()) {
+			AMochihuda[0][0] = true;
+			AMochihuda[2][0] = true;
+			AMochihuda[7][0] = true;
+		}
 		//for Debugging
 		Print << ARolls;
 		DrawRadialGradientBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
@@ -445,7 +451,7 @@ void Main()
 			CheckRolls(AMochihuda, ARolls);
 		}
 		DisplayMochihuda::Draw(AMochihuda, BMochihuda);
-		IsPlayerTurn = !IsPlayerTurn;
+		//IsPlayerTurn = !IsPlayerTurn;
 	}
 }
 
