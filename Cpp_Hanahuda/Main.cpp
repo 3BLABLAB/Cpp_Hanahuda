@@ -165,12 +165,15 @@ void DrawTable(int turn, BahudaLines& Bahuda, TehudaLines& ATehuda, TehudaLines&
 			huda.Render();
 		}
 	}
+	return;
+}
 
+void DisplayTehuda(TehudaLines& ATehuda, TehudaLines& BTehuda) {
 	//Render Tehuda
 	//A
-	BasePoint = ATehudaBasePosition;
-	gap = -20;
-	for (int i = 0; i < ATehuda.size();i++) {
+	Vec2 BasePoint = ATehudaBasePosition;
+	int gap = -20;
+	for (int i = 0; i < ATehuda.size(); i++) {
 		Huda& huda = ATehuda[i];
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
 		huda.SetPosition(Position);
@@ -401,10 +404,13 @@ void Main()
 	bool IsPlayerTurn = true;
 	int SelectedIndex = -1;   
 	int DecidedIndex = -1;
-	std::vector<String> ARolls, BRolls;
+	std::vector<String> ARolls(8), BRolls(8);
+	Huda DecidedHuda;
 
 	while (System::Update())
 	{
+		//このループは無数に繰り返す
+		//基本的にどちらかのターンのスコープの中に処理を書く
 		//for debugging
 		if (MouseR.down()) {
 			AMochihuda[0][0] = true;
@@ -420,7 +426,6 @@ void Main()
 			return ;
 		}
 		if (IsPlayerTurn) {
-			Huda DecidedHuda;
 			int Clicked = DetectSelectedTehuda(ATehuda,SelectedIndex,DecidedIndex);
 			//マウスオーバーされたものを強調表示
 			if (SelectedIndex != -1)
@@ -445,11 +450,39 @@ void Main()
 					SelectedIndex = -1;
 					DecidedIndex = -1;
 				}
+				//Check Rolls
+				CheckRolls(AMochihuda, ARolls);
+				IsPlayerTurn = !IsPlayerTurn;
 				DrawYamahuda(Bahuda, BahudaAppeared);
 			}
-			//Check Rolls
-			CheckRolls(AMochihuda, ARolls);
 		}
+		else {
+			//TODO
+			//out of index
+			for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
+				DecidedHuda = BTehuda[CPUCandidate];
+				if (!Bahuda[DecidedHuda.month].isEmpty()) {
+					//場札から獲得
+					for (auto huda : Bahuda[DecidedHuda.month]) {
+						BMochihuda[huda.month][huda.order] = true;
+					}
+					//場札から削除
+					Bahuda[DecidedHuda.month].clear();
+					//手札から獲得
+					BMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
+					//手札から削除
+					BTehuda.erase(BTehuda.begin() + DecidedIndex);
+					SelectedIndex = -1;
+					DecidedIndex = -1;
+
+					//Check Rolls
+					CheckRolls(BMochihuda, BRolls);
+					IsPlayerTurn = !IsPlayerTurn;
+					DrawYamahuda(Bahuda, BahudaAppeared);
+				}
+			}
+		}
+		DisplayTehuda(ATehuda, BTehuda);
 		DisplayMochihuda::Draw(AMochihuda, BMochihuda);
 		//IsPlayerTurn = !IsPlayerTurn;
 	}
