@@ -418,7 +418,7 @@ void Main()
 			AMochihuda[7][0] = true;
 		}
 		//for Debugging
-		Print << ARolls;
+		//Print << ARolls;
 		DrawRadialGradientBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
 		DrawTable(turn, Bahuda, ATehuda, BTehuda);
 
@@ -457,10 +457,10 @@ void Main()
 			}
 		}
 		else {
-			//TODO
-			//out of index
 			for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
 				DecidedHuda = BTehuda[CPUCandidate];
+				Print << DecidedHuda.month;
+				Print << Bahuda[DecidedHuda.month].isEmpty();
 				if (!Bahuda[DecidedHuda.month].isEmpty()) {
 					//場札から獲得
 					for (auto huda : Bahuda[DecidedHuda.month]) {
@@ -471,14 +471,13 @@ void Main()
 					//手札から獲得
 					BMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
 					//手札から削除
-					BTehuda.erase(BTehuda.begin() + DecidedIndex);
-					SelectedIndex = -1;
-					DecidedIndex = -1;
-
+					BTehuda.erase(BTehuda.begin() + CPUCandidate);
+					
 					//Check Rolls
 					CheckRolls(BMochihuda, BRolls);
 					IsPlayerTurn = !IsPlayerTurn;
 					DrawYamahuda(Bahuda, BahudaAppeared);
+					break;
 				}
 			}
 		}
