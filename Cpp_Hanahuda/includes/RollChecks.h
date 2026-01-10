@@ -1,8 +1,7 @@
 ﻿#pragma once
 # include <Siv3D.hpp> // Siv3D v0.6.16
 # include <vector>
-
-using HudaFlagTable = std::array<std::array<bool, 4>, 12>;
+# include "Common.h"
 
 void CheckRolls(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
 void Goko(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
