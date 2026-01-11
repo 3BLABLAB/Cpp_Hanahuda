@@ -35,7 +35,7 @@ void Game::update()
 		//}
 	
 	//for Debugging
-	Print << ARolls;
+	//Print << ARolls;
 
 	
 	if (ATehuda.empty() || BTehuda.empty()) {
@@ -53,7 +53,7 @@ void Game::update()
 	}
 	if (IsPlayerTurn) {
 		bool obtainable = BahudaObtainable(turn);//獲得可能か
-		Print << U"A: " << obtainable;
+		//Print << U"A: " << obtainable;
 		int Clicked = DetectSelectedTehuda(SelectedIndex, DecidedIndex);
 		
 		//ダブルクリックで決定
@@ -90,15 +90,15 @@ void Game::update()
 	}
 	else {
 		bool obtainable = BahudaObtainable(turn);//獲得可能か
-		Print << U"B: " << obtainable;
+		//Print << U"B: " << obtainable;
 
 		for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
 			DecidedHuda = BTehuda[CPUCandidate];
 			if (!obtainable) {
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
-				IsPlayerTurn = !IsPlayerTurn;
-				break;
+				continue;
 			}
+			//場札から獲得可能
 			else if (!Bahuda[DecidedHuda.month].isEmpty()) {
 				//場札から獲得
 				for (auto huda : Bahuda[DecidedHuda.month]) {
