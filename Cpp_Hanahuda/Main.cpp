@@ -27,6 +27,7 @@ void Main()
 			break;
 		}
 	}
+	return;
 }
 
 //

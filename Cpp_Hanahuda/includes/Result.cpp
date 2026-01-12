@@ -22,7 +22,7 @@ void Result::update()
 {
 	if (SimpleGUI::Button(U"End", Vec2{ 350, 100 }, unspecified, true))
 	{
-		return;
+		System::Exit();
 	}
 }
 

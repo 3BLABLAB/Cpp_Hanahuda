@@ -62,6 +62,7 @@ void Game::update()
 			DecidedHuda = ATehuda[DecidedIndex];
 			if (!obtainable) {
 				//場札に追加
+				DecidedHuda.SetBahuda();
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
 				//手札から削除
 				ATehuda.erase(ATehuda.begin() + DecidedIndex);
@@ -95,6 +96,8 @@ void Game::update()
 		for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
 			DecidedHuda = BTehuda[CPUCandidate];
 			if (!obtainable) {
+				//場札に追加
+				DecidedHuda.SetBahuda();
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
 				continue;
 			}
