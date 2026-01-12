@@ -2,6 +2,7 @@
 # include <Result.h>
 # include <Game.h>
 # include <Common.h>
+# include <Title.h>
 # include <memory>
 # include <utility>
 
@@ -10,11 +11,12 @@ void Main()
 {
 	HudaTextureManager::Load();
 	App manager;
+	manager.add<Title>(U"Title");
 	manager.add<Game>(U"Game");
 	manager.add<Result>(U"Result");
 
 	//Print << FileSystem::CurrentDirectory();
-	manager.init(U"Game");
+	manager.init(U"Title");
 	//manager.changeScene(U"Result");
 	
 	while (System::Update())

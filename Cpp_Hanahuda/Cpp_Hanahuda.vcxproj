@@ -118,6 +118,7 @@
     <ClCompile Include="includes\Game.cpp" />
     <ClCompile Include="includes\Result.cpp" />
     <ClCompile Include="includes\RollChecks.cpp" />
+    <ClCompile Include="includes\Title.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -332,6 +333,7 @@
     <ClInclude Include="includes\Result.h" />
     <ClInclude Include="includes\RollChecks.h" />
     <ClInclude Include="includes\SceneCommon.h" />
+    <ClInclude Include="includes\Title.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

@@ -92,7 +92,7 @@ void Game::update()
 	else {
 		bool obtainable = BahudaObtainable(turn);//獲得可能か
 		//Print << U"B: " << obtainable;
-
+ 
 		for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
 			DecidedHuda = BTehuda[CPUCandidate];
 			if (!obtainable) {

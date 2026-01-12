@@ -6,7 +6,7 @@ Result::Result(const InitData& init)
 	: IScene{ init }
 	, font{ FontMethod::MSDF, 48 }
 {
-	Print << U"fuckResult::Result()";
+	Print << U"Result::Result()";
 	Scene::SetBackground(ColorF{ 0.4, 0.4, 0.2 });
 
 }
