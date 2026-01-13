@@ -20,7 +20,7 @@ void Goko(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls) {
 	if (count == 3) Rolls[0] = U"Sanko";
 	else if (count == 4)
 	{
-		if (Mochihuda[10][0]) Rolls[0] = U"Ameshiko";
+		if (Mochihuda[10][0]) Rolls[0] = U"AmeShiko";
 		else Rolls[0] = U"Shiko";
 	}
 	else if (count == 5) Rolls[0] = U"Goko";

@@ -38,7 +38,7 @@ void Result::draw() const
 	for (int i = 0; i < aRolls.size(); ++i)
 	{
 		if (aRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(aRolls[i])).draw(40, Vec2{ 100, 170 + i * 50 });
+		font(U"{}"_fmt(aRolls[i])).draw(30, Vec2{ 100, 170 + i * 50 });
 	}
 
 	//Bのスコアを表示
@@ -46,7 +46,19 @@ void Result::draw() const
 	for (int i = 0; i < bRolls.size(); ++i)
 	{
 		if (bRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(bRolls[i])).draw(40, Vec2{ 700, 170 + i * 50 });
+		font(U"{}"_fmt(bRolls[i])).draw(30, Vec2{ 700, 170 + i * 50 });
 	}
 	
+}
+
+int Result::PointCheck(const std::vector<String>& Rolls) {
+	int sum = 0;
+	for (const String& roll : Rolls) {
+		if (roll == U"Goko")sum += 10;
+		else if (roll == U"Shiko")sum += 8;
+		else if (roll == U"AmeShiko")sum += 7;
+		else if (roll == U"Sanko")sum += 5;
+		if (roll == U"HanamiDeIppai")sum += 5;
+		if (roll == U"TsukimiDeIppai")sum += 5;
+	}
 }
