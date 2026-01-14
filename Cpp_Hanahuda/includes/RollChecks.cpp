@@ -36,7 +36,7 @@ void HanamiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls) 
 void TsukimiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls) {
 	if (Mochihuda[7][0] && Mochihuda[8][0])
 	{
-		Rolls[2] = U"HanamiDeIppai";
+		Rolls[2] = U"TsukimiDeIppai";
 	}
 }
 

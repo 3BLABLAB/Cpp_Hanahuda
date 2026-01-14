@@ -34,7 +34,8 @@ void Result::draw() const
 	const auto& bRolls = getData().BRolls;
 
 	//Aのスコアを表示
-	font(U"A:").draw(60, 200, 100);
+	int score = PointCheck(aRolls);
+	font(U"A:{}"_fmt(score)).draw(60, 200, 100);
 	for (int i = 0; i < aRolls.size(); ++i)
 	{
 		if (aRolls[i].isEmpty())continue;
@@ -42,7 +43,8 @@ void Result::draw() const
 	}
 
 	//Bのスコアを表示
-	font(U"B:").draw(60, 600, 100);
+	score = PointCheck(bRolls);
+	font(U"B:{}"_fmt(score)).draw(60, 600, 100);
 	for (int i = 0; i < bRolls.size(); ++i)
 	{
 		if (bRolls[i].isEmpty())continue;
@@ -51,14 +53,38 @@ void Result::draw() const
 	
 }
 
-int Result::PointCheck(const std::vector<String>& Rolls) {
+int Result::PointCheck(const std::vector<String>& Rolls) const{
 	int sum = 0;
 	for (const String& roll : Rolls) {
-		if (roll == U"Goko")sum += 10;
-		else if (roll == U"Shiko")sum += 8;
-		else if (roll == U"AmeShiko")sum += 7;
-		else if (roll == U"Sanko")sum += 5;
-		if (roll == U"HanamiDeIppai")sum += 5;
-		if (roll == U"TsukimiDeIppai")sum += 5;
+		if (roll.isEmpty()) continue;
+
+		// --- 固定役の判定 ---
+		if (roll == U"Goko") sum += 10;
+		else if (roll == U"Shiko") sum += 8;
+		else if (roll == U"AmeShiko") sum += 7;
+		else if (roll == U"Sanko") sum += 5;
+
+		if (roll == U"HanamiDeIppai") sum += 5;
+		if (roll == U"TsukimiDeIppai") sum += 5;
+		if (roll == U"Inoshikacho") sum += 5;
+		if (roll == U"Akatan") sum += 5;
+		if (roll == U"Aotan") sum += 5;
+
+		// --- カス・タン・タネ（数字付き）の判定 ---
+		if (roll.includes(U"Kasu")) // "Kasu"が含まれている場合
+		{
+			sum += Parse<int>(roll.removed(U"Kasu"));
+		}
+		else if (roll.includes(U"Tane")) // "Tane"が含まれている場合
+		{
+			sum += Parse<int>(roll.removed(U"Tane"));
+		}
+		// "Akatan"や"Aotan"に反応しないよう、"Tan"は厳密に区別するかelse ifで繋ぐ
+		else if (roll.starts_with(U"Tan"))
+		{
+			sum += Parse<int>(roll.removed(U"Tan"));
+		}
 	}
+
+	return sum;
 }

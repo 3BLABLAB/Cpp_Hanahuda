@@ -836,5 +836,8 @@
     <ClInclude Include="includes\Title.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="includes\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
