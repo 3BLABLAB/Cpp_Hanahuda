@@ -20,5 +20,5 @@ public:
 private:
 	Font font;
 
-	int PointCheck(const std::vector <String>& Rolls) const{}
+	int PointCheck(const std::vector <String>& Rolls) const;
 };

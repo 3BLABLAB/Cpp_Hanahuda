@@ -5,8 +5,10 @@
 // ClassName::FunctionName という書き方になります
 Game::Game(const InitData& init)
 	: IScene{ init }
-	, ARolls(8)         
-	, BRolls(8)
+	, APreRoll{false}
+	, BPreRoll{false}
+	, ARolls(9)
+	, BRolls(9)
 {
 	for (auto& row : BahudaAppeared) { row.fill(false); }
 	for (auto& row : AMochihuda) { row.fill(false); }
@@ -28,16 +30,26 @@ Game::~Game()
 // 更新関数の実装
 void Game::update()
 {
-	//accumlatedTime += Scene::DeltaTime();
-		//if (interval <= accumlatedTime)
-		//{
-		//	accumlatedTime -= interval;
-		//}
-	
-	//for Debugging
-	//Print << ARolls;
+	if (m_state == GameState::KoiKoiCheck)
+	{
+		// こいこいボタン
+		if (RectF(250, 320, 120, 50).leftClicked())
+		{
+			// ゲーム再開
+			m_state = GameState::Playing;
+			IsPlayerTurn = !IsPlayerTurn;
+		}
 
-	
+		// 勝負（ストップ）ボタン
+		if (RectF(430, 320, 120, 50).leftClicked())
+		{
+			getData().ARolls = this->ARolls;
+			getData().BRolls = this->BRolls;
+			changeScene(U"Result");
+		}
+		// ★ここで return することで、下のゲーム進行処理を実行させない（時を止める）
+		return;
+	}
 	if (ATehuda.empty() || BTehuda.empty()) {
 		getData().ARolls = this->ARolls;
 		getData().BRolls = this->BRolls;
@@ -53,7 +65,6 @@ void Game::update()
 	}
 	if (IsPlayerTurn) {
 		bool obtainable = BahudaObtainable(turn);//獲得可能か
-		//Print << U"A: " << obtainable;
 		int Clicked = DetectSelectedTehuda(SelectedIndex, DecidedIndex);
 		
 		//ダブルクリックで決定
@@ -84,15 +95,14 @@ void Game::update()
 				DecidedIndex = -1;
 			}
 			//Check Rolls
-			CheckRolls(AMochihuda, ARolls);
+			CheckRolls(AMochihuda, ARolls, APreRoll);
 			IsPlayerTurn = !IsPlayerTurn;
 			DrawYamahuda(turn);
 		}
 	}
 	else {
 		bool obtainable = BahudaObtainable(turn);//獲得可能か
-		//Print << U"B: " << obtainable;
- 
+		
 		for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
 			DecidedHuda = BTehuda[CPUCandidate];
 			if (!obtainable) {
@@ -117,10 +127,16 @@ void Game::update()
 			}
 		}
 		//Check Rolls
-		CheckRolls(BMochihuda, BRolls);
+		CheckRolls(BMochihuda, BRolls, BPreRoll);
 		IsPlayerTurn = !IsPlayerTurn;
 		DrawYamahuda(turn);
 	}
+	//こいこいチェック
+	for (const String& roll : ARolls) {
+		if(roll!=U"")m_state = GameState::KoiKoiCheck;
+	}
+
+
 	DisplayTehuda();
 	DisplayMochihuda::Draw(AMochihuda, BMochihuda);
 }
@@ -150,6 +166,25 @@ void Game::draw() const
 		{
 			self->HighlightCard(ATehuda[SelectedIndex]);
 		}
+	}
+
+	if (m_state == GameState::KoiKoiCheck)
+	{
+		// 画面全体を半透明の黒で覆う (Alpha 0.6)
+		Scene::Rect().draw(ColorF{ 0.0, 0.6 });
+
+		// ダイアログっぽい枠
+		RectF(Arg::center(400, 300), 400, 200)
+			.draw(Palette::White)
+			.drawFrame(2, Palette::Black);
+
+		FontAsset(U"TitleFont")(U"こいこいしますか？").drawAt(400, 250, Palette::Black);
+
+		RectF(250, 320, 120, 50).draw(Palette::Orange).drawFrame(1, Palette::Black);
+		FontAsset(U"TitleFont")(U"こいこい").drawAt(310, 345, Palette::White);
+
+		RectF(430, 320, 120, 50).draw(Palette::Red).drawFrame(1, Palette::Black);
+		FontAsset(U"TitleFont")(U"勝負").drawAt(490, 345, Palette::White);
 	}
 }
 

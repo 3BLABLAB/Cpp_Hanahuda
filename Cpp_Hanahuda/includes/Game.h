@@ -19,6 +19,11 @@ public:
 
 private:
 	//変数群
+	enum class GameState {
+		Playing,
+		KoiKoiCheck
+	};
+	GameState m_state = GameState::Playing;
 	HudaFlagTable BahudaAppeared{};
 	//A:Player B:Rival
 	HudaFlagTable AMochihuda{};
@@ -31,6 +36,7 @@ private:
 	int DecidedIndex = -1;
 	std::vector<String> ARolls, BRolls;
 	Huda DecidedHuda;
+	bool APreRoll, BPreRoll;
 
 	//時間設定
 	const double interval = 0.5;

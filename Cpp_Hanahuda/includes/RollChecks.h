@@ -3,13 +3,13 @@
 # include <vector>
 # include "Common.h"
 
-void CheckRolls(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Goko(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void HanamiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void TsukimiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Inoshikacho(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Akatan(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Aotan(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Tane(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Tann(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
-void Kasu(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls);
+void CheckRolls(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Goko(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void HanamiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void TsukimiDeIppai(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Inoshikacho(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Akatan(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Aotan(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Tane(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Tann(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
+void Kasu(const HudaFlagTable& Mochihuda, std::vector <String>& Rolls, bool& PreRoll);
