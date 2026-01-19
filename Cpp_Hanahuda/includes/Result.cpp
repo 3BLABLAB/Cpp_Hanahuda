@@ -39,7 +39,7 @@ void Result::draw() const
 	for (int i = 0; i < aRolls.size(); ++i)
 	{
 		if (aRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(aRolls[i])).draw(30, Vec2{ 100, 170 + i * 50 });
+		font(U"{}"_fmt(aRolls[i])).draw(30, Vec2{ 200, 150 + i * 50 });
 	}
 
 	//Bのスコアを表示
@@ -48,7 +48,7 @@ void Result::draw() const
 	for (int i = 0; i < bRolls.size(); ++i)
 	{
 		if (bRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(bRolls[i])).draw(30, Vec2{ 700, 170 + i * 50 });
+		font(U"{}"_fmt(bRolls[i])).draw(30, Vec2{ 600, 150 + i * 50 });
 	}
 	
 }
