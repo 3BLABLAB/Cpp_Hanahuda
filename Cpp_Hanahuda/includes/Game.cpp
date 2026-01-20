@@ -9,6 +9,7 @@ Game::Game(const InitData& init)
 	, BPreRoll{false}
 	, ARolls(9)
 	, BRolls(9)
+	, font{ FontMethod::MSDF, 48, U"fonts/玉ねぎ楷書_激_無料版v7/玉ねぎ楷書「激」無料版v7/玉ねぎ楷書激無料版v7改.ttf" }
 {
 	for (auto& row : BahudaAppeared) { row.fill(false); }
 	for (auto& row : AMochihuda) { row.fill(false); }
@@ -40,7 +41,7 @@ void Game::update()
 			IsPlayerTurn = !IsPlayerTurn;
 		}
 
-		// 勝負（ストップ）ボタン
+		//	上がりボタン
 		if (RectF(430, 320, 120, 50).leftClicked())
 		{
 			getData().ARolls = this->ARolls;

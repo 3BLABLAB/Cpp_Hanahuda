@@ -19,6 +19,7 @@ public:
 
 private:
 	//変数群
+	Font font;
 	enum class GameState {
 		Playing,
 		KoiKoiCheck
