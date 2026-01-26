@@ -25,6 +25,7 @@ private:
 		KoiKoiCheck
 	};
 	GameState m_state = GameState::Playing;
+	const Vec2 KoikoiButtonPos, AgariButtonPos;
 	HudaFlagTable BahudaAppeared{};
 	//A:Player B:Rival
 	HudaFlagTable AMochihuda{};

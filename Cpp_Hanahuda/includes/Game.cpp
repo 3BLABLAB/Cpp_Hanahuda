@@ -10,6 +10,8 @@ Game::Game(const InitData& init)
 	, ARolls(9)
 	, BRolls(9)
 	, font{ FontMethod::MSDF, 48, U"fonts/玉ねぎ楷書_激_無料版v7/玉ねぎ楷書「激」無料版v7/玉ねぎ楷書激無料版v7改.ttf" }
+	,KoikoiButtonPos { 250, 320 }
+	,AgariButtonPos { 430, 320 }
 {
 	for (auto& row : BahudaAppeared) { row.fill(false); }
 	for (auto& row : AMochihuda) { row.fill(false); }
@@ -20,6 +22,7 @@ Game::Game(const InitData& init)
 	//Print << ATehuda;
 	getData().ARolls.clear();
 	getData().BRolls.clear();
+	m_state = GameState::KoiKoiCheck;
 }
 
 // デストラクタの実装
@@ -33,8 +36,10 @@ void Game::update()
 {
 	if (m_state == GameState::KoiKoiCheck)
 	{
+		RectF KoikoiButton = RectF(Arg::center(KoikoiButtonPos), 120, 50);
+		RectF AgariButton = RectF(Arg::center(AgariButtonPos), 120, 50);
 		// こいこいボタン
-		if (RectF(250, 320, 120, 50).leftClicked())
+		if (KoikoiButton.leftClicked())
 		{
 			// ゲーム再開
 			m_state = GameState::Playing;
@@ -42,13 +47,12 @@ void Game::update()
 		}
 
 		//	上がりボタン
-		if (RectF(430, 320, 120, 50).leftClicked())
+		if (AgariButton.leftClicked())
 		{
 			getData().ARolls = this->ARolls;
 			getData().BRolls = this->BRolls;
 			changeScene(U"Result");
 		}
-		// ★ここで return することで、下のゲーム進行処理を実行させない（時を止める）
 		return;
 	}
 	if (ATehuda.empty() || BTehuda.empty()) {
@@ -182,10 +186,10 @@ void Game::draw() const
 		FontAsset(U"TitleFont")(U"こいこいしますか？").drawAt(400, 250, Palette::Black);
 
 		RectF(250, 320, 120, 50).draw(Palette::Orange).drawFrame(1, Palette::Black);
-		FontAsset(U"TitleFont")(U"こいこい").drawAt(310, 345, Palette::White);
+		font(U"こいこい").drawAt(55, AgariButtonPos, Palette::Black);
 
 		RectF(430, 320, 120, 50).draw(Palette::Red).drawFrame(1, Palette::Black);
-		FontAsset(U"TitleFont")(U"勝負").drawAt(490, 345, Palette::White);
+		font(U"勝負").drawAt(55, KoikoiButtonPos, Palette::Black);
 	}
 }
 
