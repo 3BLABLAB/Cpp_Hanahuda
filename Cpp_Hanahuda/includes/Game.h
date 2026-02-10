@@ -46,14 +46,14 @@ private:
 
 	//関数群
 	void DisplayBackground(const ColorF& centerColor, const ColorF& outerColor);
-	void DrawTable(int turn);
+	void DrawTable();
 	void DisplayTehuda();
 	Huda GetNewHuda();
 	void InitializeTable();
 	int DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex);
 	void HighlightCard(const Huda& card);
-	void DrawYamahuda(int turn);
-	bool BahudaObtainable(int turn);
+	void DrawYamahuda(bool turn);
+	std::vector<bool> BahudaObtainable(TehudaLines Tehuda);
 
 	//for Debugging
 	void PrintMonthsWithCards();

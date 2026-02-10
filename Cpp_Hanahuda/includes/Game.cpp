@@ -10,19 +10,16 @@ Game::Game(const InitData& init)
 	, ARolls(9)
 	, BRolls(9)
 	, font{ FontMethod::MSDF, 48, U"fonts/玉ねぎ楷書_激_無料版v7/玉ねぎ楷書「激」無料版v7/玉ねぎ楷書激無料版v7改.ttf" }
-	,KoikoiButtonPos { 250, 320 }
-	,AgariButtonPos { 430, 320 }
+	,KoikoiButtonPos { 300, 320 }
+	,AgariButtonPos { 500, 320 }
 {
 	for (auto& row : BahudaAppeared) { row.fill(false); }
 	for (auto& row : AMochihuda) { row.fill(false); }
 	for (auto& row : BMochihuda) { row.fill(false); }
 	Print << U"Game::Game()";
-	turn = 0;//偶数がプレイヤー
 	InitializeTable();
-	//Print << ATehuda;
 	getData().ARolls.clear();
 	getData().BRolls.clear();
-	m_state = GameState::KoiKoiCheck;
 }
 
 // デストラクタの実装
@@ -53,7 +50,6 @@ void Game::update()
 			getData().BRolls = this->BRolls;
 			changeScene(U"Result");
 		}
-		return;
 	}
 	if (ATehuda.empty() || BTehuda.empty()) {
 		getData().ARolls = this->ARolls;
@@ -61,22 +57,16 @@ void Game::update()
 		changeScene(U"Result");
 		return;
 	}
-	if (MouseR.down())
-	{
-		getData().ARolls = this->ARolls;
-		getData().BRolls = this->BRolls;
-		changeScene(U"Result");
-		return;
-	}
 	if (IsPlayerTurn) {
-		bool obtainable = BahudaObtainable(turn);//獲得可能か
+		std::vector<bool> obtainable = BahudaObtainable(ATehuda);//獲得可能か
 		int Clicked = DetectSelectedTehuda(SelectedIndex, DecidedIndex);
 		
 		//ダブルクリックで決定
 		if (DecidedIndex != -1)
 		{
+			size_t previousYakuCount = ARolls.size();
 			DecidedHuda = ATehuda[DecidedIndex];
-			if (!obtainable) {
+			if (obtainable.empty()) {
 				//場札に追加
 				DecidedHuda.SetBahuda();
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
@@ -85,7 +75,8 @@ void Game::update()
 				SelectedIndex = -1;
 				DecidedIndex = -1;
 			}
-			else if (!Bahuda[DecidedHuda.month].isEmpty()) {
+			if (!Bahuda[DecidedHuda.month].isEmpty()) {
+				Print << U"GetfromBahuda";
 				//場札から獲得
 				for (auto huda : Bahuda[DecidedHuda.month]) {
 					AMochihuda[huda.month][huda.order] = true;
@@ -99,48 +90,71 @@ void Game::update()
 				SelectedIndex = -1;
 				DecidedIndex = -1;
 			}
+			
 			//Check Rolls
 			CheckRolls(AMochihuda, ARolls, APreRoll);
+			if (ARolls.size() > previousYakuCount)
+			{
+				m_state = GameState::KoiKoiCheck;
+				//return;
+			}
+			DrawYamahuda(IsPlayerTurn);
+			if (ARolls.size() > previousYakuCount)
+			{
+				m_state = GameState::KoiKoiCheck;
+				//return;
+			}
 			IsPlayerTurn = !IsPlayerTurn;
-			DrawYamahuda(turn);
 		}
 	}
-	else {
-		bool obtainable = BahudaObtainable(turn);//獲得可能か
-		
-		for (int CPUCandidate = 0; CPUCandidate < BTehuda.size(); CPUCandidate++) {
-			DecidedHuda = BTehuda[CPUCandidate];
-			if (!obtainable) {
-				//場札に追加
-				DecidedHuda.SetBahuda();
-				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
-				continue;
-			}
-			//場札から獲得可能
-			else if (!Bahuda[DecidedHuda.month].isEmpty()) {
-				//場札から獲得
-				for (auto huda : Bahuda[DecidedHuda.month]) {
-					BMochihuda[huda.month][huda.order] = true;
-				}
-				//場札から削除
-				Bahuda[DecidedHuda.month].clear();
-				//手札から獲得
-				BMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
-				//手札から削除
-				BTehuda.erase(BTehuda.begin() + CPUCandidate);
-				break;
-			}
-		}
-		//Check Rolls
-		CheckRolls(BMochihuda, BRolls, BPreRoll);
-		IsPlayerTurn = !IsPlayerTurn;
-		DrawYamahuda(turn);
-	}
-	//こいこいチェック
-	for (const String& roll : ARolls) {
-		if(roll!=U"")m_state = GameState::KoiKoiCheck;
-	}
+	else { // CPUのターン
+		Print << U"CPU Turn";
+		std::vector<bool> obtainable = BahudaObtainable(BTehuda);
 
+		int targetIndex = -1; // 出す手札のインデックス
+
+		//場札を取れるカードを探す
+		for (int i = 0; i < BTehuda.size(); ++i) {
+			if (obtainable[i]) {
+				targetIndex = i;
+				break; // 取れる札が見つかったら、それを出すことに決めて検索終了
+			}
+		}
+		//取れる札がなければ、一番左の札を捨てる
+		if (targetIndex == -1) {
+			targetIndex = 0;
+		}
+		DecidedHuda = BTehuda[targetIndex];
+
+		//取れる札がないので捨てる
+		if (!obtainable[targetIndex]) {
+			// 場札に追加
+			DecidedHuda.SetBahuda();
+			Bahuda[DecidedHuda.month].push_back(DecidedHuda);
+
+			// 手札から削除
+			BTehuda.erase(BTehuda.begin() + targetIndex);
+		}
+		// パターンB: 場札を獲得する
+		else {
+			// 場札から獲得
+			for (auto huda : Bahuda[DecidedHuda.month]) {
+				BMochihuda[huda.month][huda.order] = true;
+			}
+			// 場札から削除
+			Bahuda[DecidedHuda.month].clear();
+			// 手札から獲得
+			BMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
+
+			// 手札から削除
+			BTehuda.erase(BTehuda.begin() + targetIndex);
+		}
+
+		// Check Rolls
+		CheckRolls(BMochihuda, BRolls, BPreRoll);
+		DrawYamahuda(IsPlayerTurn);
+		IsPlayerTurn = !IsPlayerTurn;
+	}
 
 	DisplayTehuda();
 	DisplayMochihuda::Draw(AMochihuda, BMochihuda);
@@ -155,7 +169,7 @@ void Game::draw() const
 	self->DisplayBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
 
 	// 2. 場札描画
-	self->DrawTable(turn);
+	self->DrawTable();
 
 	// 3. 手札描画
 	self->DisplayTehuda();
@@ -185,11 +199,12 @@ void Game::draw() const
 
 		FontAsset(U"TitleFont")(U"こいこいしますか？").drawAt(400, 250, Palette::Black);
 
-		RectF(250, 320, 120, 50).draw(Palette::Orange).drawFrame(1, Palette::Black);
-		font(U"こいこい").drawAt(55, AgariButtonPos, Palette::Black);
+		//RectF KoikoiButton = RectF(Arg::center(KoikoiButtonPos), 120, 50);
+		RectF(Arg::center(KoikoiButtonPos), 150, 50).draw(Palette::Orange).drawFrame(1, Palette::Black);
+		font(U"こいこい").drawAt(40, KoikoiButtonPos, Palette::Black);
 
-		RectF(430, 320, 120, 50).draw(Palette::Red).drawFrame(1, Palette::Black);
-		font(U"勝負").drawAt(55, KoikoiButtonPos, Palette::Black);
+		RectF(Arg::center(AgariButtonPos), 150, 50).draw(Palette::Red).drawFrame(1, Palette::Black);
+		font(U"勝負").drawAt(40, AgariButtonPos, Palette::Black);
 	}
 }
 
@@ -236,7 +251,7 @@ void Game::HighlightCard(const Huda& card)
 }
 
 //機能系関数
-void Game::DrawTable(int turn) {
+void Game::DrawTable() {
 	Vec2 CenterPos = Scene::Center();
 	Huda huda;
 	//Render yamahuda
@@ -364,9 +379,9 @@ int Game::DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex)
 	return -1;
 }
 
-void Game::DrawYamahuda(int turn) {
+void Game::DrawYamahuda(bool IsPlayerTurn) {
 	HudaFlagTable* Mochihuda;
-	if (turn % 2 == 0) Mochihuda = &AMochihuda;
+	if (IsPlayerTurn) Mochihuda = &AMochihuda;
 	else Mochihuda = &BMochihuda;
 
 	Huda NewHuda = GetNewHuda();
@@ -382,21 +397,15 @@ void Game::DrawYamahuda(int turn) {
 	return;
 }
 
-bool Game::BahudaObtainable(int turn) {
-	TehudaLines Tehuda;
-	if (turn % 2 == 0)Tehuda = ATehuda;
-	else Tehuda = BTehuda;
-
-	bool ans = false;
+std::vector<bool> Game::BahudaObtainable(TehudaLines Tehuda) {
+	std::vector<bool> ans(Tehuda.size(), false);
 	for (int i = 0; i < Tehuda.size(); i++) {
 		if (!Bahuda[Tehuda[i].month].isEmpty()) {
-			ans = true;
-			break;
+			ans[i] = true;
 		}
 	}
 	return ans;
 }
-
 
 //for Debugging
 void Game::PrintMonthsWithCards()
