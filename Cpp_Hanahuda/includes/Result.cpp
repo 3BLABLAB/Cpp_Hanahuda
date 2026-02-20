@@ -33,22 +33,25 @@ void Result::draw() const
 	const auto& aRolls = getData().ARolls;
 	const auto& bRolls = getData().BRolls;
 
+	int Ascore = PointCheck(aRolls);
+	int Bscore = PointCheck(bRolls);
+	if (Ascore > Bscore)font(U"あなたの勝ちです！").draw(60, 200, 50);
+	else if (Ascore < Bscore)font(U"あなたの負けです！").draw(60, 200, 50);
+	else font(U"引き分けです！").draw(60, 200, 50);
 	//Aのスコアを表示
-	int score = PointCheck(aRolls);
-	font(U"A:{}"_fmt(score)).draw(60, 200, 100);
+	font(U"あなた:{}"_fmt(Ascore)).draw(60, 100, 100);
 	for (int i = 0; i < aRolls.size(); ++i)
 	{
 		if (aRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(aRolls[i])).draw(30, Vec2{ 200, 150 + i * 50 });
+		font(U"{}"_fmt(aRolls[i])).draw(30, Vec2{ 100, 150 + i * 50 });
 	}
 
 	//Bのスコアを表示
-	score = PointCheck(bRolls);
-	font(U"B:{}"_fmt(score)).draw(60, 600, 100);
+	font(U"CPU:{}"_fmt(Bscore)).draw(60, 550, 100);
 	for (int i = 0; i < bRolls.size(); ++i)
 	{
 		if (bRolls[i].isEmpty())continue;
-		font(U"{}"_fmt(bRolls[i])).draw(30, Vec2{ 600, 150 + i * 50 });
+		font(U"{}"_fmt(bRolls[i])).draw(30, Vec2{ 550, 150 + i * 50 });
 	}
 	
 }

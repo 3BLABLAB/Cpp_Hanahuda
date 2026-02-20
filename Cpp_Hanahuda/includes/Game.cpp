@@ -31,6 +31,7 @@ Game::~Game()
 // 更新関数の実装
 void Game::update()
 {
+	Print << IsPlayerTurn;
 	if (m_state == GameState::KoiKoiCheck)
 	{
 		RectF KoikoiButton = RectF(Arg::center(KoikoiButtonPos), 120, 50);
@@ -57,6 +58,7 @@ void Game::update()
 		changeScene(U"Result");
 		return;
 	}
+
 	if (IsPlayerTurn) {
 		std::vector<bool> obtainable = BahudaObtainable(ATehuda);//獲得可能か
 		int Clicked = DetectSelectedTehuda(SelectedIndex, DecidedIndex);
@@ -64,18 +66,22 @@ void Game::update()
 		//ダブルクリックで決定
 		if (DecidedIndex != -1)
 		{
-			size_t previousYakuCount = ARolls.size();
+			int YakuCount = 0;
+			for (auto i : ARolls) {
+				if (!i.isEmpty())YakuCount++;
+			}
 			DecidedHuda = ATehuda[DecidedIndex];
-			if (obtainable.empty()) {
+
+			//場札から獲得できないなら
+			if (!obtainable[DecidedIndex]) {
+				Print << U"not obtainable";
 				//場札に追加
 				DecidedHuda.SetBahuda();
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
 				//手札から削除
 				ATehuda.erase(ATehuda.begin() + DecidedIndex);
-				SelectedIndex = -1;
-				DecidedIndex = -1;
 			}
-			if (!Bahuda[DecidedHuda.month].isEmpty()) {
+			else if (!Bahuda[DecidedHuda.month].isEmpty()) {
 				Print << U"GetfromBahuda";
 				//場札から獲得
 				for (auto huda : Bahuda[DecidedHuda.month]) {
@@ -87,23 +93,22 @@ void Game::update()
 				AMochihuda[DecidedHuda.month][DecidedHuda.order] = true;
 				//手札から削除
 				ATehuda.erase(ATehuda.begin() + DecidedIndex);
-				SelectedIndex = -1;
-				DecidedIndex = -1;
-			}
-			
-			//Check Rolls
-			CheckRolls(AMochihuda, ARolls, APreRoll);
-			if (ARolls.size() > previousYakuCount)
-			{
-				m_state = GameState::KoiKoiCheck;
-				//return;
+				
 			}
 			DrawYamahuda(IsPlayerTurn);
-			if (ARolls.size() > previousYakuCount)
+			//Check Rolls
+			CheckRolls(AMochihuda, ARolls, APreRoll);
+
+			int t_YakuCount = 0;
+			for (auto i : ARolls) {
+				if (!i.isEmpty())t_YakuCount++;
+			}
+			if (t_YakuCount > YakuCount)
 			{
 				m_state = GameState::KoiKoiCheck;
-				//return;
 			}
+			SelectedIndex = -1;
+			DecidedIndex = -1;
 			IsPlayerTurn = !IsPlayerTurn;
 		}
 	}
@@ -135,7 +140,7 @@ void Game::update()
 			// 手札から削除
 			BTehuda.erase(BTehuda.begin() + targetIndex);
 		}
-		// パターンB: 場札を獲得する
+		//場札を獲得する
 		else {
 			// 場札から獲得
 			for (auto huda : Bahuda[DecidedHuda.month]) {
