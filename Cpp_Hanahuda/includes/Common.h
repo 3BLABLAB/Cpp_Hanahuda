@@ -82,6 +82,11 @@ public:void Render() {
 		.resized(width, height)
 		.drawAt(pos);
 }
+public:void RenderAt(Vec2 position) const {
+	HudaTextureManager::Get(month, order)
+		.resized(width, height)
+		.drawAt(position);
+}
 };
 
 // シーンの名前（キー）の型
@@ -91,7 +96,7 @@ using State = String;
 using HudaFlagTable = std::array<std::array<bool, 4>, 12>;
 using BahudaLines = std::array<Array<Huda>, 12>;
 using TehudaLines = std::vector<Huda>;
-using HudaFlagTable = std::array<std::array<bool, 4>, 12>;
+
 constexpr Vec2 ATehudaBasePosition{ 200, 500 };
 constexpr Vec2  BTehudaBasePosition{ 200, 100 };
 constexpr Vec2  AMochihudaBasePosition{ 30, 400 };

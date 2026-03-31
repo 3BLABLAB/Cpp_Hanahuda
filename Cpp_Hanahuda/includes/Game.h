@@ -33,6 +33,8 @@ private:
 	BahudaLines Bahuda{};
 	TehudaLines ATehuda{}, BTehuda{};
 	int turn;
+	Array<int> deck;
+	int deckPos = 0;
 	bool IsPlayerTurn = true;
 	int SelectedIndex = -1;
 	int DecidedIndex = -1;
@@ -45,13 +47,13 @@ private:
 	double accumlatedTime = 0.0;
 
 	//関数群
-	void DisplayBackground(const ColorF& centerColor, const ColorF& outerColor);
-	void DrawTable();
-	void DisplayTehuda();
-	Huda GetNewHuda();
+	void DisplayBackground(const ColorF& centerColor, const ColorF& outerColor) const;
+	void DrawTable() const;
+	void DisplayTehuda() const;
+	Huda DrawFromDeck();
 	void InitializeTable();
-	int DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex);
-	void HighlightCard(const Huda& card);
+	void DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex);
+	void HighlightCard(const Huda& card, Vec2 position) const;
 	void DrawYamahuda(bool turn);
 	std::vector<bool> BahudaObtainable(TehudaLines Tehuda);
 

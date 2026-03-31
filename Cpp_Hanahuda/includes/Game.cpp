@@ -31,7 +31,6 @@ Game::~Game()
 // 更新関数の実装
 void Game::update()
 {
-	Print << IsPlayerTurn;
 	if (m_state == GameState::KoiKoiCheck)
 	{
 		RectF KoikoiButton = RectF(Arg::center(KoikoiButtonPos), 120, 50);
@@ -61,7 +60,7 @@ void Game::update()
 
 	if (IsPlayerTurn) {
 		std::vector<bool> obtainable = BahudaObtainable(ATehuda);//獲得可能か
-		int Clicked = DetectSelectedTehuda(SelectedIndex, DecidedIndex);
+		DetectSelectedTehuda(SelectedIndex, DecidedIndex);
 		
 		//ダブルクリックで決定
 		if (DecidedIndex != -1)
@@ -113,7 +112,6 @@ void Game::update()
 		}
 	}
 	else { // CPUのターン
-		Print << U"CPU Turn";
 		std::vector<bool> obtainable = BahudaObtainable(BTehuda);
 
 		int targetIndex = -1; // 出す手札のインデックス
@@ -156,28 +154,41 @@ void Game::update()
 		}
 
 		// Check Rolls
+		int YakuCount = 0;
+		for (auto i : BRolls) {
+			if (!i.isEmpty())YakuCount++;
+		}
 		CheckRolls(BMochihuda, BRolls, BPreRoll);
 		DrawYamahuda(IsPlayerTurn);
+
+		int t_YakuCount = 0;
+		for (auto i : BRolls) {
+			if (!i.isEmpty())t_YakuCount++;
+		}
+		// CPUが新しい役を成立させたら即上がり
+		if (t_YakuCount > YakuCount)
+		{
+			getData().ARolls = this->ARolls;
+			getData().BRolls = this->BRolls;
+			changeScene(U"Result");
+			return;
+		}
 		IsPlayerTurn = !IsPlayerTurn;
 	}
 
-	DisplayTehuda();
-	DisplayMochihuda::Draw(AMochihuda, BMochihuda);
+
 }
 
 // 描画関数の実装
 void Game::draw() const
 {
-	// const関数の中から非constなヘルパー関数を呼ぶためのキャスト
-	Game* self = const_cast<Game*>(this);
-	// 1. 背景描画
-	self->DisplayBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
+	DisplayBackground(ColorF{ 0.2, 0.8, 0.4 }, ColorF{ 0.26, 0.43, 0.35 });
 
 	// 2. 場札描画
-	self->DrawTable();
+	DrawTable();
 
 	// 3. 手札描画
-	self->DisplayTehuda();
+	DisplayTehuda();
 
 	// 4. 獲得札描画
 	DisplayMochihuda::Draw(AMochihuda, BMochihuda);
@@ -185,10 +196,11 @@ void Game::draw() const
 	// 5. 選択中の手札ハイライト
 	if (IsPlayerTurn && SelectedIndex != -1)
 	{
-		// 配列外参照防止
 		if (SelectedIndex >= 0 && SelectedIndex < ATehuda.size())
 		{
-			self->HighlightCard(ATehuda[SelectedIndex]);
+			const Huda& card = ATehuda[SelectedIndex];
+			Vec2 pos = ATehudaBasePosition + SelectedIndex * Vec2(card.width + (-20), 0);
+			HighlightCard(card, pos);
 		}
 	}
 
@@ -214,40 +226,38 @@ void Game::draw() const
 }
 
 //表示系関数
-void Game::DisplayBackground(const ColorF& centerColor, const ColorF& outerColor)
+void Game::DisplayBackground(const ColorF& centerColor, const ColorF& outerColor) const
 {
 	Circle{ Scene::Center(), (Scene::Size().length() * 0.5) }
 	.draw(centerColor, outerColor);
 }
 
-void Game::DisplayTehuda() {
+void Game::DisplayTehuda() const {
 	//Render Tehuda
 	//A
 	Vec2 BasePoint = ATehudaBasePosition;
 	int gap = -20;
 	for (int i = 0; i < ATehuda.size(); i++) {
-		Huda& huda = ATehuda[i];
+		const Huda& huda = ATehuda[i];
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
-		huda.SetPosition(Position);
-		huda.Render();
+		huda.RenderAt(Position);
 	}
 	//B
 	BasePoint = BTehudaBasePosition;
 	gap = -20;
 	for (int i = 0; i < BTehuda.size(); i++) {
-		Huda& huda = BTehuda[i];
+		const Huda& huda = BTehuda[i];
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
 		RectF(Arg::center(Position), huda.width, huda.height)
 			.drawFrame(1, Palette::Black)
 			.draw(ColorF(0.26, 0.43, 0.43));
 	}
-	return;
 }
 
-void Game::HighlightCard(const Huda& card)
+void Game::HighlightCard(const Huda& card, Vec2 position) const
 {
 	RectF frame(
-		Arg::center(card.pos),   // 描画位置と同一座標
+		Arg::center(position),
 		card.width + 8,
 		card.height + 8
 	);
@@ -256,7 +266,7 @@ void Game::HighlightCard(const Huda& card)
 }
 
 //機能系関数
-void Game::DrawTable() {
+void Game::DrawTable() const {
 	Vec2 CenterPos = Scene::Center();
 	Huda huda;
 	//Render yamahuda
@@ -272,90 +282,70 @@ void Game::DrawTable() {
 	Vec2 BasePoint = CenterPos + Vec2{ -BaseDx , -BaseDy };
 	for (int i = 0; i < 3; i++) {
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
-		auto MonthBahuda = Bahuda[i];
-		for (auto& huda : MonthBahuda) {
-			huda.SetPosition(Position);
-			huda.Render();
+		const auto& MonthBahuda = Bahuda[i];
+		for (const auto& h : MonthBahuda) {
+			h.RenderAt(Position);
 		}
 	}
 	//４～６
 	BasePoint = CenterPos + Vec2{ -BaseDx , +BaseDy };
 	for (int i = 0; i < 3; i++) {
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
-		auto MonthBahuda = Bahuda[i + 3];
-		for (auto& huda : MonthBahuda) {
-			huda.SetPosition(Position);
-			huda.Render();
+		const auto& MonthBahuda = Bahuda[i + 3];
+		for (const auto& h : MonthBahuda) {
+			h.RenderAt(Position);
 		}
 	}
 	//７～９
 	BasePoint = CenterPos + Vec2{ +gap * 1.5 + huda.width , -BaseDy };
 	for (int i = 0; i < 3; i++) {
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
-		auto MonthBahuda = Bahuda[i + 6];
-		for (auto& huda : MonthBahuda) {
-			huda.SetPosition(Position);
-			huda.Render();
+		const auto& MonthBahuda = Bahuda[i + 6];
+		for (const auto& h : MonthBahuda) {
+			h.RenderAt(Position);
 		}
 	}
 	//１０～１２
 	BasePoint = CenterPos + Vec2{ +gap * 1.5 + huda.width , +BaseDy };
 	for (int i = 0; i < 3; i++) {
 		Vec2 Position = BasePoint + i * Vec2(huda.width + gap, 0);
-		auto MonthBahuda = Bahuda[i + 9];
-		for (auto& huda : MonthBahuda) {
-			huda.SetPosition(Position);
-			huda.Render();
+		const auto& MonthBahuda = Bahuda[i + 9];
+		for (const auto& h : MonthBahuda) {
+			h.RenderAt(Position);
 		}
 	}
-	return;
 }
 
-Huda Game::GetNewHuda() {
-	int NewHudaNum = Random(0, 47);
-	int m, o;
-	do
-	{
-		NewHudaNum = Random(0, 47);//0-47
-		m = NewHudaNum / 4;
-		o = NewHudaNum % 4;
-	} while (BahudaAppeared[m][o]);
-	BahudaAppeared[m][o] = true;
-	Huda NewHuda = Huda(m, o);
-	return NewHuda;
+Huda Game::DrawFromDeck() {
+	int idx = deck[deckPos++];
+	return Huda(idx / 4, idx % 4);
 }
 
 void Game::InitializeTable() {
-	//setting bahuda
-	int nonEmptyMonthCount = 0;
-	while (nonEmptyMonthCount < 8)
-	{
-		Huda NewHuda = GetNewHuda();
+	// デッキ作成＆シャッフル
+	deck.resize(48);
+	for (int i = 0; i < 48; i++) deck[i] = i;
+	deck.shuffle();
+	deckPos = 0;
+
+	// 場札8枚
+	for (int i = 0; i < 8; i++) {
+		Huda NewHuda = DrawFromDeck();
 		NewHuda.SetBahuda();
 		Bahuda[NewHuda.month].push_back(NewHuda);
-		nonEmptyMonthCount = 0;
-		for (int i = 0; i < 12; i++)
-		{
-			if (!Bahuda[i].isEmpty())
-			{
-				nonEmptyMonthCount++;
-			}
-		}
 	}
-	//setting tehuda
+	// 手札8枚ずつ
 	for (int i = 0; i < 8; i++) {
-		Huda NewHuda = GetNewHuda();
+		Huda NewHuda = DrawFromDeck();
 		NewHuda.SetTehuda();
 		ATehuda.push_back(NewHuda);
-		NewHuda = GetNewHuda();
+		NewHuda = DrawFromDeck();
 		NewHuda.SetTehuda();
 		BTehuda.push_back(NewHuda);
 	}
 }
 
-//プレイヤーの手札クリック検知
-//戻り値: クリックされた手札の index（0～7）or -1
-int Game::DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex)
+void Game::DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex)
 {
 	Vec2 BasePoint = Vec2{ 200, 500 };
 	int gap = -20;
@@ -373,7 +363,7 @@ int Game::DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex)
 		if (hitbox.mouseOver())
 		{
 			SelectedIndex = i;
-			// ダブルクリックで確定
+			// クリックで確定
 			if (hitbox.leftClicked())
 			{
 				DecidedIndex = i;
@@ -381,7 +371,6 @@ int Game::DetectSelectedTehuda(int& SelectedIndex, int& DecidedIndex)
 			break;
 		}
 	}
-	return -1;
 }
 
 void Game::DrawYamahuda(bool IsPlayerTurn) {
@@ -389,7 +378,7 @@ void Game::DrawYamahuda(bool IsPlayerTurn) {
 	if (IsPlayerTurn) Mochihuda = &AMochihuda;
 	else Mochihuda = &BMochihuda;
 
-	Huda NewHuda = GetNewHuda();
+	Huda NewHuda = DrawFromDeck();
 	if (!Bahuda[NewHuda.month].isEmpty()) {
 		for (auto huda : Bahuda[NewHuda.month]) {
 			(*Mochihuda)[huda.month][huda.order] = true;
@@ -398,8 +387,8 @@ void Game::DrawYamahuda(bool IsPlayerTurn) {
 		(*Mochihuda)[NewHuda.month][NewHuda.order] = true;
 		return;
 	}
+	NewHuda.SetBahuda();
 	Bahuda[NewHuda.month].push_back(NewHuda);
-	return;
 }
 
 std::vector<bool> Game::BahudaObtainable(TehudaLines Tehuda) {
