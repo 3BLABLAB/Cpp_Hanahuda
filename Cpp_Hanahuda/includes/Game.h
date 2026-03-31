@@ -45,6 +45,8 @@ private:
 	//時間設定
 	const double interval = 0.5;
 	double accumlatedTime = 0.0;
+	Stopwatch stopwatch;
+	bool WaitFlag = false;
 
 	//関数群
 	void DisplayBackground(const ColorF& centerColor, const ColorF& outerColor) const;

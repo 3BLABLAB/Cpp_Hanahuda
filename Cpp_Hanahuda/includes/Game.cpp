@@ -20,6 +20,7 @@ Game::Game(const InitData& init)
 	InitializeTable();
 	getData().ARolls.clear();
 	getData().BRolls.clear();
+
 }
 
 // デストラクタの実装
@@ -28,9 +29,18 @@ Game::~Game()
 	Print << U"Game::~Game()";
 }
 
+
 // 更新関数の実装
 void Game::update()
 {
+	if (WaitFlag) {
+		if (stopwatch.sF() >= 0.7) {
+			WaitFlag = false; // 1秒経ったら待機解除
+			stopwatch.reset();
+		} else {
+			return; // 1秒経つまではこれ以降の処理（クリック等）に進ませない
+		}
+	}
 	if (m_state == GameState::KoiKoiCheck)
 	{
 		RectF KoikoiButton = RectF(Arg::center(KoikoiButtonPos), 120, 50);
@@ -73,7 +83,6 @@ void Game::update()
 
 			//場札から獲得できないなら
 			if (!obtainable[DecidedIndex]) {
-				Print << U"not obtainable";
 				//場札に追加
 				DecidedHuda.SetBahuda();
 				Bahuda[DecidedHuda.month].push_back(DecidedHuda);
@@ -81,7 +90,7 @@ void Game::update()
 				ATehuda.erase(ATehuda.begin() + DecidedIndex);
 			}
 			else if (!Bahuda[DecidedHuda.month].isEmpty()) {
-				Print << U"GetfromBahuda";
+				
 				//場札から獲得
 				for (auto huda : Bahuda[DecidedHuda.month]) {
 					AMochihuda[huda.month][huda.order] = true;
@@ -109,6 +118,11 @@ void Game::update()
 			SelectedIndex = -1;
 			DecidedIndex = -1;
 			IsPlayerTurn = !IsPlayerTurn;
+
+
+			WaitFlag = true;
+			stopwatch.restart();
+			return;
 		}
 	}
 	else { // CPUのターン
@@ -174,9 +188,11 @@ void Game::update()
 			return;
 		}
 		IsPlayerTurn = !IsPlayerTurn;
+		
+		WaitFlag = true;
+		stopwatch.restart();
+		return;
 	}
-
-
 }
 
 // 描画関数の実装
@@ -204,7 +220,7 @@ void Game::draw() const
 		}
 	}
 
-	if (m_state == GameState::KoiKoiCheck)
+	if (m_state == GameState::KoiKoiCheck && !WaitFlag)
 	{
 		// 画面全体を半透明の黒で覆う (Alpha 0.6)
 		Scene::Rect().draw(ColorF{ 0.0, 0.6 });
